@@ -516,7 +516,23 @@ impl Maildir {
         let entry = self.find(id).ok_or_else(|| {
             std::io::Error::new(std::io::ErrorKind::NotFound, "Mail entry not found")
         })?;
-        let filename = entry.path().file_name().ok_or_else(|| {
+        let filepath = entry.path();
+        let folder = filepath
+            .parent()
+            .ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Invalid mail dir structure",
+                )
+            })?
+            .file_name().ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Invalid mail dir structure",
+                )
+            })?;
+
+        let filename = filepath.file_name().ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "Invalid mail entry file name",
@@ -524,7 +540,7 @@ impl Maildir {
         })?;
 
         let src_path = entry.path();
-        let dst_path = target.path().join("cur").join(filename);
+        let dst_path = target.path().join(folder).join(filename);
         if src_path == &dst_path {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -541,13 +557,29 @@ impl Maildir {
         let entry = self.find(id).ok_or_else(|| {
             std::io::Error::new(std::io::ErrorKind::NotFound, "Mail entry not found")
         })?;
-        let filename = entry.path().file_name().ok_or_else(|| {
+        let filepath = entry.path();
+        let folder = filepath
+            .parent()
+            .ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Invalid mail dir structure",
+                )
+            })?
+            .file_name().ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Invalid mail dir structure",
+                )
+            })?;
+
+        let filename = filepath.file_name().ok_or_else(|| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 "Invalid mail entry file name",
             )
         })?;
-        fs::rename(entry.path(), target.path().join("cur").join(filename))?;
+        fs::rename(entry.path(), target.path().join(folder).join(filename))?;
         Ok(())
     }
 
